@@ -1,0 +1,5 @@
+fake-useragent
+requests
+python-dotenv
+pyttsx3
+TikTokLive
