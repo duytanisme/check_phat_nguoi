@@ -60,6 +60,15 @@ def get_plate_data(plate_str: str) -> Dict[str, str]:
         return {}
 
 
+def handle_fault(plate_data: Dict[str, str]):
+    faults = plate_data.get("data", [])
+    if 0 < len(faults) < 10:
+        for fault in faults:
+            fault_time = fault.get("Thời gian vi phạm")
+            fault_action = fault.get("Hành vi vi phạm")
+            logger.info(f"{fault_time}: {fault_action}")
+
+
 def process_plate_queue():
     while True:
         plate = plate_queue.get()
@@ -80,23 +89,28 @@ def process_plate_queue():
             dxp = plate_data.get("data_info", {}).get("daxuphat", 0)
             sum_fault = int(cxp) + int(dxp)
             message = f"Biển số {plate_number} - Vi phạm {sum_fault} lỗi | Chưa xử phạt: {cxp} | Đã xử phạt: {dxp}"
+            logger.info(message)
+            say_message(message)
+            handle_fault(plate_data)
 
         elif plate_data.get("status") == 2:
             message = f"Biển số {plate_number} - Không có lỗi vi phạm"
+            logger.info(message)
+            say_message(message)
 
         elif plate_data.get("status") == 3:
             message = f"Biển số {plate_number} - {plate_data.get('msg')}"
-
-        logger.info(message)
-        say_message(message)
+            logger.info(message)
+            say_message(message)
 
         plate_queue.task_done()
         logger.info("-" * 20)
 
 
-def get_match_plate(id_string):
-    pattern = r"\b\d{2}[A-Za-z]\d?-?\d{4,5}\b"
-    return re.search(pattern, id_string)
+def get_match_plate(input_message):
+    cleaned_message = re.sub(r'[^a-zA-Z0-9]', '', input_message.lower())
+    pattern = r"\b\d{2}[A-Za-z]\d?-?\d{4,6}\b"
+    return re.search(pattern, cleaned_message)
 
 
 plate_queue = queue.Queue()
