@@ -28,6 +28,19 @@ python -r install requirements.txt
 
 ### 3. Run the main.py
 
+You need to provide a TikTok user ID in .env file. If you don't have it, just create a new .env file, then add USER_ID.
+Eg:
+
+```text
+USER_ID=@target_user_id
+```
+
+Or you can explicitly hard code the user ID in main.py.
+
+```python
+USER_ID = "@target_user_id"
+```
+
 Run the main function to start working continuously.
 
 ```bash
@@ -53,8 +66,16 @@ docker run --name container_name -d image_name
 
 If you want to automatically sync your changes to the codes inside the container, run this command instead:
 
+- For Windows users:
+
 ```bash
 docker run --name container_name -d -v ${pwd}:/app image_name
+```
+
+- For those who use macOS or Linux-based OS, replace "{pwd}" with "(pwd)" (curly bracket to normal bracket):
+
+```bash
+docker run --name container_name -d -v $(pwd):/app image_name
 ```
 
 Note: Replace "image_name" and "container_name" with your desired names.
