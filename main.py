@@ -19,6 +19,17 @@ load_dotenv()
 
 USER_ID = os.getenv("USER_ID")
 
+FINE_STATUS = {
+    "PENDING": "Chưa xử phạt",
+    "COMPLETE": "Đã xử phạt",
+}
+
+PROPERTIES = {
+    "ACTION": "Hành vi vi phạm",
+    "STATUS": "Trạng thái",
+    "TIME": "Thời gian vi phạm",
+}
+
 # Setup custom logging
 config_file_path = os.path.join(os.getcwd(), "configs", "logging_cfg.json")
 with open(config_file_path) as json_file:
@@ -53,20 +64,22 @@ def get_plate_data(plate_str: str) -> Dict[str, str]:
 
     try:
         response = requests.post('https://api.checkphatnguoi.vn/phatnguoi',
-                                 headers=headers, json=json_data)
+            headers=headers, json=json_data
+        )
         return response.json()
     except Exception as e:
         logger.error(f"Error: {e}")
         return {}
 
 
-def handle_fault(plate_data: Dict[str, str]):
+def handle_fault(plate_data):
     faults = plate_data.get("data", [])
     if 0 < len(faults) < 10:
         for fault in faults:
-            fault_time = fault.get("Thời gian vi phạm")
-            fault_action = fault.get("Hành vi vi phạm")
-            logger.info(f"{fault_time}: {fault_action}")
+            if fault.get(PROPERTIES["STATUS"]) == FINE_STATUS["PENDING"]:
+                fault_time = fault.get(PROPERTIES["TIME"])
+                fault_action = fault.get(PROPERTIES["ACTION"])
+                logger.info(f"{fault_time}: {fault_action}")
 
 
 def process_plate_queue():
@@ -82,7 +95,6 @@ def process_plate_queue():
         logger.info(message)
         say_message(message)
 
-        message = None
         plate_data = get_plate_data(plate_number)
         if plate_data.get("status") == 1:
             cxp = plate_data.get("data_info", {}).get("chuaxuphat", 0)
@@ -132,7 +144,8 @@ async def on_comment(event: CommentEvent):
     if match_plate:
         plate_number = match_plate.group()
         plate_queue.put(
-            {"plate_owner": event.user.nickname, "plate_number": plate_number})
+            {"plate_owner": event.user.nickname, "plate_number": plate_number}
+        )
 
 
 if __name__ == "__main__":
