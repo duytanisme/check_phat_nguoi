@@ -8,6 +8,7 @@ import time
 from logging.config import dictConfig
 from typing import Dict
 
+import TikTokLive.client.errors
 import pyttsx3
 import requests
 from TikTokLive import TikTokLiveClient
@@ -20,13 +21,11 @@ load_dotenv()
 USER_ID = os.getenv("USER_ID")
 
 FINE_STATUS = {
-    "PENDING": "Chưa xử phạt",
-    "COMPLETE": "Đã xử phạt",
+    "PENDING": "Chưa xử phạt", "COMPLETE": "Đã xử phạt",
 }
 
 PROPERTIES = {
-    "ACTION": "Hành vi vi phạm",
-    "STATUS": "Trạng thái",
+    "ACTION": "Hành vi vi phạm", "STATUS": "Trạng thái",
     "TIME": "Thời gian vi phạm",
 }
 
@@ -149,4 +148,15 @@ async def on_comment(event: CommentEvent):
 
 
 if __name__ == "__main__":
-    client.run()
+    while True:
+        try:
+            client.run()
+        except TikTokLive.client.errors.UserOfflineError:
+            logger.warning("User is offline. Retrying in 30 seconds...")
+            time.sleep(30)
+        except TikTokLive.client.errors.UserNotFoundError:
+            logger.error("User not found")
+            break
+        except TikTokLive.client.errors as gne:
+            logger.error(f"TikTok error: {gne}")
+            break
