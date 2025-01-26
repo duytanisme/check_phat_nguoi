@@ -23,7 +23,7 @@ If you are working in a venv, make sure that you already activated the venv to p
 your computer.
 
 ```bash
-python -r install requirements.txt
+python install -r requirements.txt
 ```
 
 ### 3. Run the main.py
